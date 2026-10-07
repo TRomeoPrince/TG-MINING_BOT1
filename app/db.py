@@ -216,3 +216,20 @@ class Database:
             )
             row = await cur.fetchone()
             return int(row[0] if row else 0)
+
+    async def top_users(self, limit: int = 10) -> list[tuple[int, Optional[str], Optional[str], float]]:
+        async with aiosqlite.connect(self.path) as db:
+            cur = await db.execute(
+                """
+                SELECT telegram_id, username, first_name, balance
+                FROM users
+                ORDER BY balance DESC, created_at ASC
+                LIMIT ?
+                """,
+                (limit,),
+            )
+            rows = await cur.fetchall()
+            return [
+                (int(row[0]), row[1], row[2], float(row[3]))
+                for row in rows
+            ]
